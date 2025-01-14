@@ -3,6 +3,7 @@
 from fastapi import APIRouter
 
 from app.api.application.router import router as application_router
+from app.api.default.router import router as default_router
 from app.core.settings import APP_CONFIG
 
 router = APIRouter(
@@ -10,6 +11,6 @@ router = APIRouter(
 )
 
 
-routers = (application_router,)
+routers = (default_router, application_router)
 for resource_router in routers:
     router.include_router(resource_router)

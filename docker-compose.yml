@@ -35,8 +35,7 @@ services:
     networks:
       - custom
     healthcheck:
-#       test: ["CMD", "curl", "-f", "http://localhost:8000/check_database"]
-       test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+       test: ["CMD", "curl", "-f", "http://localhost:8000/check_database"]
        interval: 30s
        timeout: 5s
        retries: 3

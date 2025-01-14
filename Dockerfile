@@ -31,6 +31,9 @@ RUN pip install --upgrade pip && \
     poetry install --no-root
 
 COPY app/ ./app
+COPY migrations/ ./migrations
+COPY alembic.ini/ ./alembic.ini
+
 
 COPY docker /bewise/docker
 RUN chmod +x /bewise/docker/*

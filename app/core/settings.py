@@ -23,7 +23,7 @@ class DbConfig(BaseModel):
     name: str = ""
 
     max_size: int = 1
-    echo: bool = False
+    echo: bool = True
 
     @computed_field
     @property

@@ -92,7 +92,6 @@ class BaseDAO(Generic[T]):
     @classmethod
     async def add(cls, session: AsyncSession, values: BaseModel) -> T:
         # Добавить одну запись
-        # todo только TransactionSessionDep иначе переделать и добавить commit() на 90 строке
         values_dict = values.model_dump(exclude_unset=True)
         logger.info(
             f"Добавление записи {cls.model.__name__} с параметрами: {values_dict}",
