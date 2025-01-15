@@ -6,6 +6,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
 from fastapi.templating import Jinja2Templates
+from prometheus_fastapi_instrumentator import Instrumentator
 
 from app.core.logger_config import configure_logging
 from app.core.settings import AppConfig
@@ -41,7 +42,7 @@ def create_app(config: AppConfig) -> FastAPI:
         version=config.api.version,
         contact={"name": "Nik", "email": "example@example.com"},
         openapi_url=config.api.openapi_url,
-        debug=config.api.debug,
+        debug=config.api.echo,
         lifespan=lifespan,
     )
 
@@ -52,6 +53,13 @@ def create_app(config: AppConfig) -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    # эндпоинт для отображения метрик для их дальнейшего сбора Прометеусом
+    instrumentator = Instrumentator(
+        should_group_status_codes=False,
+        excluded_handlers=[".*admin.*", "/metrics"],
+    )
+    instrumentator.instrument(app).expose(app, include_in_schema=True)
 
     app.include_router(router)
 

@@ -39,11 +39,10 @@ async def _ping():
     status_code=status.HTTP_200_OK,
 )
 async def _ready(session: AsyncSession = SessionDep):
-    logger.debug("ready")
     try:
         await session.execute(text("SELECT 1"))
     except SQLAlchemyError:
         raise HTTPException(500, "Database not ready")
 
-    logger.debug("pg ready")
+    logger.info("pg ready")
     return DBResponse(status="Database is ready")

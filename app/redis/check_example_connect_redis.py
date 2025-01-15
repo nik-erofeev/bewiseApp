@@ -1,7 +1,7 @@
 import asyncio
 import json
 
-import redis.asyncio as aioredis
+import redis.asyncio as aioredis  # type: ignore
 
 
 async def main():

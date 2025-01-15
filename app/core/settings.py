@@ -25,7 +25,7 @@ class DbConfig(BaseModel):
     max_size: int = 1
     echo: bool = True
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def sqlalchemy_db_uri(self) -> PostgresDsn:
         multi_host_url = MultiHostUrl.build(
@@ -60,7 +60,7 @@ class Api(BaseModel):
     description: str = "BewiseApp API 🚀"
     version: str = "1.0.0"
     openapi_url: str = "/api/v1/openapi.json"
-    debug: bool = False
+    echo: bool = False
     v1: str = "/v1"
 
 

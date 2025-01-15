@@ -17,7 +17,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 WORKDIR /bewise
 
 RUN apt-get update && \
-    apt-get install -y curl postgresql-client && \
+    apt-get install -y curl postgresql-client netcat-openbsd && \
     apt-get clean
 
 

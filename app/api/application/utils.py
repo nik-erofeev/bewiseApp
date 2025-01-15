@@ -19,11 +19,16 @@ def create_message(
     new_data: dict | None = None,
     update_data: dict | None = None,
 ) -> dict[str, Any]:
+    def filter_data(data: dict | None) -> dict:
+        if data is None:
+            return {}
+        return {k: v for k, v in data.items() if v not in (None, "null", "")}
+
     message = {
         "action": action.value,
         "application_id": application_id,
-        "new_application": new_data,
-        "update_application": update_data,
+        "new_application": filter_data(new_data),
+        "update_application": filter_data(update_data),
     }
-    # Удаляем ключи с значениями None
-    return {k: v for k, v in message.items() if v is not None}
+
+    return {k: v for k, v in message.items() if v}

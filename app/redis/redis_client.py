@@ -37,7 +37,7 @@ class RedisClient:
         return self._redis_pool  # type: ignore
 
     def connect(self) -> None:
-        redis_pool = aioredis.ConnectionPool.from_url(
+        redis_pool: aioredis.ConnectionPool = aioredis.ConnectionPool.from_url(
             url=self._config.host,
             encoding="utf8",
         )

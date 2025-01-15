@@ -8,4 +8,9 @@ down:
 	docker compose -f docker-compose.yml down --remove-orphans
 
 up_local:
-	docker compose -f docker-compose.yml up -d postgres zookeeper kafka kafka-ui
+	docker compose -f docker-compose.yml up -d postgres zookeeper kafka kafka-ui redis
+
+
+mypy:
+	@echo mypy .
+	mypy . --exclude 'venv|migrations'
