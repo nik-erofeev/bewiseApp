@@ -9,10 +9,9 @@ from fastapi.templating import Jinja2Templates
 
 from app.core.logger_config import configure_logging
 from app.core.settings import AppConfig
+from app.kafka.dependencies import kafka_producer
 from app.redis.dependencies import redis_cli
 from app.routers import router
-
-# from app.kafka.dependencies import kafka_producer
 
 configure_logging()
 logger = logging.getLogger(__name__)
@@ -23,7 +22,7 @@ async def lifespan(app: FastAPI):
     logger.info("Starting server...")
 
     logger.info("Starting Kafka producer...")
-    # await kafka_producer.start()  # если нужен постоянный коннект
+    await kafka_producer.start()  # если нужен постоянный коннект
 
     logger.info("Starting Redis client...")
     await redis_cli.setup()  # если нужен постоянный коннект
@@ -31,7 +30,7 @@ async def lifespan(app: FastAPI):
     yield  # Здесь приложение будет работать
 
     logger.info("Shutting down server...")
-    # await kafka_producer.stop()
+    await kafka_producer.stop()
     await redis_cli.close()
 
 

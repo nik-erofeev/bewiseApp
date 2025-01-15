@@ -12,6 +12,8 @@ from app.api.application.schemas import (
 )
 from app.api.application.utils import description
 from app.dao.session_maker import TransactionSessionDep
+from app.kafka.dependencies import KafkaProducerDep
+from app.kafka.producer import KafkaProducer
 from app.redis.dependencies import RedisClientTariffDep
 
 router = APIRouter(
@@ -30,9 +32,9 @@ router = APIRouter(
 async def add_application(
     data: ApplicationCreateSchema = Body(example=description),
     session: AsyncSession = TransactionSessionDep,
-    # kafka: KafkaProducer = KafkaProducerDep,
+    kafka: KafkaProducer = KafkaProducerDep,
 ):
-    return await ApplicationDAO.create_an_application(data, session)
+    return await ApplicationDAO.create_an_application(data, session, kafka)
 
 
 @router.get(
@@ -84,9 +86,14 @@ async def delete_tariff(
     applications_id: int,
     session: AsyncSession = TransactionSessionDep,
     redis: RedisClientApplication = RedisClientTariffDep,
-    # kafka: KafkaProducer = KafkaProducerDep,
+    kafka: KafkaProducer = KafkaProducerDep,
 ):
-    return await ApplicationDAO.delete_application(applications_id, session, redis)
+    return await ApplicationDAO.delete_application(
+        applications_id,
+        session,
+        redis,
+        kafka,
+    )
 
 
 @router.patch(
@@ -101,11 +108,12 @@ async def update_tariff(
     new_application: ApplicationUpdateSchema = Body(example=description),
     session: AsyncSession = TransactionSessionDep,
     redis: RedisClientApplication = RedisClientTariffDep,
-    # kafka: KafkaProducer = KafkaProducerDep,
+    kafka: KafkaProducer = KafkaProducerDep,
 ):
     return await ApplicationDAO.update_application(
         application_id,
         new_application,
         session,
         redis,
+        kafka,
     )

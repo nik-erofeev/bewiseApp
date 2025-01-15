@@ -14,7 +14,9 @@ from app.api.application.schemas import (
     ApplicationUpdateResponseSchema,
     ApplicationUpdateSchema,
 )
+from app.api.application.utils import ActionType, create_message
 from app.dao.base import BaseDAO
+from app.kafka.producer import KafkaProducer
 from app.models import Application
 
 logger = logging.getLogger(__name__)
@@ -27,14 +29,24 @@ class ApplicationDAO(BaseDAO):
     @classmethod
     async def create_an_application(
         cls,
-        application_data: ApplicationSchema,
+        data: ApplicationSchema,
         session: AsyncSession,
-        # kafka: KafkaProducer,
+        kafka: KafkaProducer,
     ) -> ApplicationRespSchema:
         try:
-            application = await cls.add(session, application_data)
+            result = await cls.add(session, data)
+
+            application = ApplicationRespSchema.model_validate(result)
+
+            message = create_message(
+                action=ActionType.CREATE_APPLICATION,
+                application_id=application.id,
+                new_data=data.model_dump(),
+            )
+            await kafka.send_message(message=message)
+
             logger.info(f"Заявка {application} успешно создана")
-            return ApplicationRespSchema.model_validate(application)
+            return application
 
             # пример без наследования
             # insert_applications = cls.model(**application_data.model_dump())
@@ -46,7 +58,7 @@ class ApplicationDAO(BaseDAO):
         except IntegrityError:
             raise HTTPException(status_code=400, detail="User already exists")
         except SQLAlchemyError as e:
-            logger.error(f"Ошибка при создании заявки {application_data} {e=!r}")
+            logger.error(f"Ошибка при создании заявки {data} {e=!r}")
             raise HTTPException(status_code=500, detail="Ошибка базы данных")
 
     @classmethod
@@ -76,13 +88,16 @@ class ApplicationDAO(BaseDAO):
         applications_id: int,
         session: AsyncSession,
         redis: RedisClientApplication,
+        kafka: KafkaProducer,
     ):
         delete_application = ApplicationFilterSchema(id=applications_id)
+        message = create_message(action=ActionType.DELETE_APPLICATION, application_id=applications_id)
         try:
             # todo: "параллельно"
-            result, _ = await asyncio.gather(
+            result, *_ = await asyncio.gather(
                 cls.delete(session=session, filters=delete_application),
                 redis.delete_application_cache(applications_id),
+                kafka.send_message(message=message),
             )
             if not result:
                 raise HTTPException(status_code=404, detail=f"Заявка {applications_id} не найдена")
@@ -96,16 +111,23 @@ class ApplicationDAO(BaseDAO):
     async def update_application(
         cls,
         applications_id: int,
-        new_data: ApplicationUpdateSchema,
+        update_data: ApplicationUpdateSchema,
         session: AsyncSession,
         redis: RedisClientApplication,
+        kafka: KafkaProducer,
     ) -> ApplicationUpdateResponseSchema:
         update_filter = ApplicationFilterSchema(id=applications_id)
+        message = create_message(
+            action=ActionType.UPDATE_APPLICATION,
+            application_id=applications_id,
+            update_data=update_data.model_dump(),
+        )
         try:
             # todo: "параллельно"
-            result, _ = await asyncio.gather(
-                cls.update(session, update_filter, new_data),
-                redis.update_application_cache(applications_id, new_data.model_dump()),
+            result, *_ = await asyncio.gather(
+                cls.update(session, update_filter, update_data),
+                redis.update_application_cache(applications_id, update_data.model_dump()),
+                kafka.send_message(message=message),
             )
 
             if not result:
@@ -141,4 +163,7 @@ class ApplicationDAO(BaseDAO):
         except SQLAlchemyError as e:
             logger.error(f"Ошибка при получении списка заявок {e=!r}")
             raise HTTPException(status_code=500, detail="Ошибка базы данных")
+        if not result:
+            raise HTTPException(status_code=404, detail="Заявки не найдены")
+
         return [ApplicationRespSchema.model_validate(item) for item in result]
