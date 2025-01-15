@@ -1,9 +1,11 @@
+import asyncio
 import logging
 
 from fastapi import HTTPException
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.application.redis_client import RedisClientApplication
 from app.api.application.schemas import (
     ApplicationFilterSchema,
     ApplicationRespSchema,
@@ -48,18 +50,40 @@ class ApplicationDAO(BaseDAO):
             raise HTTPException(status_code=500, detail="Ошибка базы данных")
 
     @classmethod
-    async def get_application_by_id(cls, applications_id: int, session: AsyncSession) -> ApplicationRespSchema:
+    async def get_application_by_id(
+        cls,
+        applications_id: int,
+        session: AsyncSession,
+        redis: RedisClientApplication,
+    ) -> ApplicationRespSchema:
+        cache = await redis.cached_application(applications_id)
+        if cache:
+            return ApplicationRespSchema(id=applications_id, **cache)
+
         result = await cls.find_one_or_none_by_id(data_id=applications_id, session=session)
 
         if not result:
             raise HTTPException(status_code=404, detail=f"Заявка {applications_id} не найдена")
-        return ApplicationRespSchema.model_validate(result)
+
+        application = ApplicationRespSchema.model_validate(result)
+        await redis.set_application_cache(applications_id, application.model_dump())
+
+        return application
 
     @classmethod
-    async def delete_application(cls, applications_id: int, session: AsyncSession):
+    async def delete_application(
+        cls,
+        applications_id: int,
+        session: AsyncSession,
+        redis: RedisClientApplication,
+    ):
         delete_application = ApplicationFilterSchema(id=applications_id)
         try:
-            result = await cls.delete(session=session, filters=delete_application)
+            # todo: "параллельно"
+            result, _ = await asyncio.gather(
+                cls.delete(session=session, filters=delete_application),
+                redis.delete_application_cache(applications_id),
+            )
             if not result:
                 raise HTTPException(status_code=404, detail=f"Заявка {applications_id} не найдена")
         except SQLAlchemyError as e:
@@ -74,10 +98,16 @@ class ApplicationDAO(BaseDAO):
         applications_id: int,
         new_data: ApplicationUpdateSchema,
         session: AsyncSession,
+        redis: RedisClientApplication,
     ) -> ApplicationUpdateResponseSchema:
         update_filter = ApplicationFilterSchema(id=applications_id)
         try:
-            result = await cls.update(session, update_filter, new_data)
+            # todo: "параллельно"
+            result, _ = await asyncio.gather(
+                cls.update(session, update_filter, new_data),
+                redis.update_application_cache(applications_id, new_data.model_dump()),
+            )
+
             if not result:
                 raise HTTPException(status_code=404, detail=f"Заявка {applications_id} не найдена")
         # todo: по хорошему через авторизацию юзера или не менять user_name

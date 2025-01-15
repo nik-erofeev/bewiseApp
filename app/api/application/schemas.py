@@ -24,9 +24,20 @@ class ApplicationRespSchema(ApplicationSchema):
     id: int
     created_at: datetime
 
+    # @field_validator("created_at", mode="before")
+    # def format_created_at(cls, v):
+    #     if isinstance(v, str):
+    #         return datetime.strptime(v, "%d-%m-%Y %H:%M:%S")
+    #     return v
+    #
+    # @field_validator("created_at", mode="after")
+    # def format_created_at_output(cls, v):
+    #     return v.strftime("%d-%m-%Y %H:%M:%S")
     @field_validator("created_at")
     def format_created_at(cls, v):
-        return v.strftime("%d-%m-%Y %H:%M:%S")
+        if isinstance(v, str):
+            return datetime.strptime(v, "%d-%m-%Y %H:%M:%S")
+        return v
 
 
 class ApplicationUpdateSchema(BaseModelConfig):

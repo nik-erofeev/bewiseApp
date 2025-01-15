@@ -3,6 +3,7 @@ from fastapi.responses import ORJSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.application.dao import ApplicationDAO
+from app.api.application.redis_client import RedisClientApplication
 from app.api.application.schemas import (
     ApplicationCreateSchema,
     ApplicationRespSchema,
@@ -11,6 +12,7 @@ from app.api.application.schemas import (
 )
 from app.api.application.utils import description
 from app.dao.session_maker import TransactionSessionDep
+from app.redis.dependencies import RedisClientTariffDep
 
 router = APIRouter(
     prefix="/applications",
@@ -43,8 +45,9 @@ async def add_application(
 async def get_tariff(
     applications_id: int,
     session: AsyncSession = TransactionSessionDep,
+    redis: RedisClientApplication = RedisClientTariffDep,
 ):
-    return await ApplicationDAO.get_application_by_id(applications_id, session)
+    return await ApplicationDAO.get_application_by_id(applications_id, session, redis)
 
 
 @router.get(
@@ -80,9 +83,10 @@ async def get_all_tariffs(
 async def delete_tariff(
     applications_id: int,
     session: AsyncSession = TransactionSessionDep,
+    redis: RedisClientApplication = RedisClientTariffDep,
     # kafka: KafkaProducer = KafkaProducerDep,
 ):
-    return await ApplicationDAO.delete_application(applications_id, session)
+    return await ApplicationDAO.delete_application(applications_id, session, redis)
 
 
 @router.patch(
@@ -96,6 +100,12 @@ async def update_tariff(
     application_id: int,
     new_application: ApplicationUpdateSchema = Body(example=description),
     session: AsyncSession = TransactionSessionDep,
+    redis: RedisClientApplication = RedisClientTariffDep,
     # kafka: KafkaProducer = KafkaProducerDep,
 ):
-    return await ApplicationDAO.update_application(application_id, new_application, session)
+    return await ApplicationDAO.update_application(
+        application_id,
+        new_application,
+        session,
+        redis,
+    )
