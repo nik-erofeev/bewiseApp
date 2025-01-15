@@ -49,6 +49,8 @@ class DbConfig(BaseModel):
 #     @property
 #     def bootstrap_servers(self) -> str:
 #         return f"{self.host}:{self.port}"
+class RedisConfig(BaseModel):
+    host: str = ""
 
 
 class Api(BaseModel):
@@ -62,6 +64,7 @@ class Api(BaseModel):
 
 class AppConfig(BaseSettings):
     db: DbConfig = DbConfig()
+    redis: RedisConfig = RedisConfig()
     # kafka: KafkaConfig = KafkaConfig()  # producer
     environment: Environments = Environments.local
     api: Api = Api()
