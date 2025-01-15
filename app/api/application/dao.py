@@ -64,83 +64,83 @@ class ApplicationDAO(BaseDAO):
     @classmethod
     async def get_application_by_id(
         cls,
-        applications_id: int,
+        application_id: int,
         session: AsyncSession,
         redis: RedisClientApplication,
     ) -> ApplicationRespSchema:
-        cache = await redis.cached_application(applications_id)
+        cache = await redis.cached_application(application_id)
         if cache:
-            return ApplicationRespSchema(id=applications_id, **cache)
+            return ApplicationRespSchema(id=application_id, **cache)
 
-        result = await cls.find_one_or_none_by_id(data_id=applications_id, session=session)
+        result = await cls.find_one_or_none_by_id(data_id=application_id, session=session)
 
         if not result:
-            raise HTTPException(status_code=404, detail=f"Заявка {applications_id} не найдена")
+            raise HTTPException(status_code=404, detail=f"Заявка {application_id} не найдена")
 
         application = ApplicationRespSchema.model_validate(result)
-        await redis.set_application_cache(applications_id, application.model_dump())
+        await redis.set_application_cache(application_id, application.model_dump())
 
         return application
 
     @classmethod
     async def delete_application(
         cls,
-        applications_id: int,
+        application_id: int,
         session: AsyncSession,
         redis: RedisClientApplication,
         kafka: KafkaProducer,
     ):
-        delete_application = ApplicationFilterSchema(id=applications_id)
-        message = create_message(action=ActionType.DELETE_APPLICATION, application_id=applications_id)
+        delete_application = ApplicationFilterSchema(id=application_id)
+        message = create_message(action=ActionType.DELETE_APPLICATION, application_id=application_id)
         try:
             # todo: "параллельно"
             result, *_ = await asyncio.gather(
                 cls.delete(session=session, filters=delete_application),
-                redis.delete_application_cache(applications_id),
+                redis.delete_application_cache(application_id),
                 kafka.send_message(message=message),
             )
             if not result:
-                raise HTTPException(status_code=404, detail=f"Заявка {applications_id} не найдена")
+                raise HTTPException(status_code=404, detail=f"Заявка {application_id} не найдена")
         except SQLAlchemyError as e:
-            logger.error(f"Ошибка при удалении заявки {applications_id} {e=!r}")
+            logger.error(f"Ошибка при удалении заявки {application_id} {e=!r}")
             raise HTTPException(status_code=500, detail="Ошибка базы данных")
         # можно вернуть message
-        # return ApplicationDeleteSchema(message=f"Заявка {applications_id} успешно удалена")
+        # return ApplicationDeleteSchema(message=f"Заявка {application_id} успешно удалена")
 
     @classmethod
     async def update_application(
         cls,
-        applications_id: int,
+        application_id: int,
         update_data: ApplicationUpdateSchema,
         session: AsyncSession,
         redis: RedisClientApplication,
         kafka: KafkaProducer,
     ) -> ApplicationUpdateResponseSchema:
-        update_filter = ApplicationFilterSchema(id=applications_id)
+        update_filter = ApplicationFilterSchema(id=application_id)
         message = create_message(
             action=ActionType.UPDATE_APPLICATION,
-            application_id=applications_id,
+            application_id=application_id,
             update_data=update_data.model_dump(),
         )
         try:
             # todo: "параллельно"
             result, *_ = await asyncio.gather(
                 cls.update(session, update_filter, update_data),
-                redis.update_application_cache(applications_id, update_data.model_dump()),
+                redis.update_application_cache(application_id, update_data.model_dump()),
                 kafka.send_message(message=message),
             )
 
             if not result:
-                raise HTTPException(status_code=404, detail=f"Заявка {applications_id} не найдена")
+                raise HTTPException(status_code=404, detail=f"Заявка {application_id} не найдена")
         # todo: по хорошему через авторизацию юзера или не менять user_name
         except IntegrityError:
             raise HTTPException(status_code=400, detail="User already exists")
 
         except SQLAlchemyError as e:
-            logger.error(f"Ошибка при обновлении заявки {applications_id} {e=!r}")
+            logger.error(f"Ошибка при обновлении заявки {application_id} {e=!r}")
             raise HTTPException(status_code=500, detail="Ошибка базы данных")
 
-        return ApplicationUpdateResponseSchema(message=f"Заявка {applications_id} успешно обновлена")
+        return ApplicationUpdateResponseSchema(message=f"Заявка {application_id} успешно обновлена")
 
     @classmethod
     async def get_applications(

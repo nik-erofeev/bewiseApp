@@ -22,7 +22,7 @@ class RedisClientApplicationManager:
 redis_cli = RedisClientApplication(APP_CONFIG.redis)
 
 redis_manager = RedisClientApplicationManager(redis_cli)
-RedisClientTariffDep = Depends(redis_manager.get_client)
+RedisClientApplicationDep = Depends(redis_manager.get_client)
 
 
 # если хотим каждый раз получать новый коннект к Redis (а не держать постоянный)! :todo: +убрать из lifespan redis_cli.setup() / redis_cli.close()
