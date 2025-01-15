@@ -14,3 +14,5 @@ up_local:
 mypy:
 	@echo mypy .
 	mypy . --exclude 'venv|migrations'
+pytest:
+	pytest -s -vv app/tests/ --junitxml tests-unit-results.xml --cov=app --cov-report='xml:coverage-tests-unit.xml'

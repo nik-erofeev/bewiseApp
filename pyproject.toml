@@ -27,7 +27,12 @@ dependencies = [
     "annotated-types (>=0.7.0,<0.8.0)",
     "black (==24.3.0)",
     "ruff (>=0.9.1,<0.10.0)",
-    "mypy (>=1.14.1,<2.0.0)"
+    "mypy (>=1.14.1,<2.0.0)",
+    "pytest (>=8.3.4,<9.0.0)",
+    "pytest-asyncio (>=0.25.2,<0.26.0)",
+    "httpx (==0.26.0)",
+    "trio (>=0.28.0,<0.29.0)",
+    "pytest-cov (>=6.0.0,<7.0.0)"
 ]
 
 
@@ -83,3 +88,9 @@ ignore_missing_imports = true
 exclude = "venv|migrations"
 
 
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+pythonpath = [".", "app"]
+python_files = ["*_test.py", "*_tests.py", "test_*.py"]
+asyncio_default_fixture_loop_scope = "function"

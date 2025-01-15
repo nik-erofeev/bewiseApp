@@ -4,6 +4,9 @@
 .gitattributes
 
 
+tests-unit-results.xml
+coverage-tests-unit.xml
+
 # CI
 .codeclimate.yml
 .travis.yml

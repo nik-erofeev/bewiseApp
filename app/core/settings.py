@@ -39,6 +39,25 @@ class DbConfig(BaseModel):
 
         return PostgresDsn(str(multi_host_url))
 
+    test_user: str = ""
+    test_password: str = ""
+    test_host: str = ""
+    test_port: int = 15432
+    test_name: str = ""  # postgres -тестовая
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def sqlalchemy_test_db_uri(self) -> PostgresDsn:
+        multi_host_url = MultiHostUrl.build(
+            scheme="postgresql+asyncpg",
+            username=self.test_user,
+            password=self.test_password,
+            host=self.test_host,
+            port=self.test_port,
+            path=self.test_name,
+        )
+        return PostgresDsn(str(multi_host_url))
+
 
 class KafkaConfig(BaseModel):
     host: str = ""

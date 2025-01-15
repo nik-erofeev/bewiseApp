@@ -4,12 +4,22 @@ from typing import Annotated, Any
 from sqlalchemy import func, Integer, TIMESTAMP
 from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncAttrs, AsyncSession, create_async_engine
 from sqlalchemy.orm import DeclarativeBase, declared_attr, Mapped, mapped_column
+from sqlalchemy.pool import NullPool
 
-from app.core.settings import APP_CONFIG
+from app.core.settings import APP_CONFIG, Environments
+
+# тесты не работаю без NullPool
+if APP_CONFIG.environment == Environments.test:
+    DATABASE_URL = APP_CONFIG.db.sqlalchemy_test_db_uri
+    DATABASE_PARAMS = {"poolclass": NullPool}
+else:
+    DATABASE_URL = APP_CONFIG.db.sqlalchemy_db_uri
+    DATABASE_PARAMS = {}
 
 engine = create_async_engine(
-    url=str(APP_CONFIG.db.sqlalchemy_db_uri),
+    str(DATABASE_URL),
     echo=APP_CONFIG.db.echo,
+    **DATABASE_PARAMS,
 )
 
 async_session_maker = async_sessionmaker(
