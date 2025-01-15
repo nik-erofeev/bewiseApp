@@ -40,15 +40,17 @@ class DbConfig(BaseModel):
         return PostgresDsn(str(multi_host_url))
 
 
-# class KafkaConfig(BaseModel):
-#     host: str = ""
-#     port: int = 9092
-#     batch_size: int = 5
-#     topik: str = "default"
-#
-#     @property
-#     def bootstrap_servers(self) -> str:
-#         return f"{self.host}:{self.port}"
+class KafkaConfig(BaseModel):
+    host: str = ""
+    port: int = 9092
+    batch_size: int = 5
+    topik: str = "default"
+
+    @property
+    def bootstrap_servers(self) -> str:
+        return f"{self.host}:{self.port}"
+
+
 class RedisConfig(BaseModel):
     host: str = ""
 
@@ -65,7 +67,7 @@ class Api(BaseModel):
 class AppConfig(BaseSettings):
     db: DbConfig = DbConfig()
     redis: RedisConfig = RedisConfig()
-    # kafka: KafkaConfig = KafkaConfig()  # producer
+    kafka: KafkaConfig = KafkaConfig()  # producer
     environment: Environments = Environments.local
     api: Api = Api()
 
