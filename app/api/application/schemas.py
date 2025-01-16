@@ -17,7 +17,14 @@ class ApplicationSchema(BaseModelConfig):
 
 
 class ApplicationCreateSchema(ApplicationSchema):
-    pass
+    class Config:
+        populate_by_name = True
+        json_schema_extra = {
+            "example": {
+                "user_name": "user",
+                "description": "Description for the application",
+            },
+        }
 
 
 class ApplicationRespSchema(ApplicationSchema):
@@ -38,6 +45,15 @@ class ApplicationUpdateSchema(BaseModelConfig):
         description="имя пользователя",
     )
     description: str | None = Field(default=None, max_length=100, description="описание заявки")
+
+    class Config:
+        populate_by_name = True
+        json_schema_extra = {
+            "example": {
+                "user_name": "new_user_name",
+                "description": "Description for the application",
+            },
+        }
 
 
 class ApplicationUpdateResponseSchema(BaseModel):

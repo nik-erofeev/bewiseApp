@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Body, Query, status
+from fastapi import APIRouter, Query, status
 from fastapi.responses import ORJSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -10,7 +10,6 @@ from app.api.application.schemas import (
     ApplicationUpdateResponseSchema,
     ApplicationUpdateSchema,
 )
-from app.api.application.utils import description
 from app.dao.session_maker import TransactionSessionDep
 from app.kafka.dependencies import KafkaProducerDep
 from app.kafka.producer import KafkaProducer
@@ -30,7 +29,7 @@ router = APIRouter(
     status_code=status.HTTP_201_CREATED,
 )
 async def add_application(
-    data: ApplicationCreateSchema = Body(example=description),
+    data: ApplicationCreateSchema,
     session: AsyncSession = TransactionSessionDep,
     kafka: KafkaProducer = KafkaProducerDep,
 ):
@@ -105,7 +104,7 @@ async def delete_application(
 )
 async def update_application(
     application_id: int,
-    new_application: ApplicationUpdateSchema = Body(example=description),
+    new_application: ApplicationUpdateSchema,
     session: AsyncSession = TransactionSessionDep,
     redis: RedisClientApplication = RedisClientApplicationDep,
     kafka: KafkaProducer = KafkaProducerDep,

@@ -1,11 +1,6 @@
 from enum import Enum
 from typing import Any
 
-description = {
-    "user_name": "user",
-    "description": "Description for the application",
-}
-
 
 class ActionType(str, Enum):
     CREATE_APPLICATION = "create_application"
