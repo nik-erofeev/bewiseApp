@@ -1,8 +1,10 @@
 import json
 import os
 
+import httpx
 import pytest
-from httpx import ASGITransport, AsyncClient
+import pytest_asyncio
+from asgi_lifespan import LifespanManager
 from sqlalchemy import insert
 
 from app.core.settings import APP_CONFIG
@@ -10,17 +12,27 @@ from app.dao.database import async_session_maker, Base, engine
 from app.main import app as fastapi_app
 from app.models import Application
 
-
-# без нее error бывает в async тестах
-@pytest.fixture
-def anyio_backend():
-    return "asyncio"
+# @pytest.fixture
+# def anyio_backend():
+#     return "asyncio"
 
 
-@pytest.fixture
-async def client():
-    async with AsyncClient(transport=ASGITransport(app=fastapi_app), base_url="http://testserver") as ac:
-        yield ac
+# @pytest.fixture
+# def client():
+#     with TestClient(fastapi_app) as cli:
+#         return cli
+
+
+@pytest_asyncio.fixture
+async def app():
+    async with LifespanManager(fastapi_app) as manager:
+        yield manager.app
+
+
+@pytest_asyncio.fixture
+async def client(app):
+    async with httpx.AsyncClient(app=app, base_url="http://testclient") as client:
+        yield client
 
 
 @pytest.fixture(autouse=True)
