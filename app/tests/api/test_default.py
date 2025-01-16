@@ -9,12 +9,12 @@ import pytest
     ],
 )
 async def test_ping(client, url: str, status: int, expected_response: dict):
-    response = await client.get(f"/v1/{url}")
+    response = client.get(f"/v1/{url}")
     assert response.status_code == status
     assert response.json() == expected_response
 
 
 async def test_ready_db(client):
-    response = await client.get("/v1/check_database")
+    response = client.get("/v1/check_database")
     assert response.status_code == 200
     assert response.json() == {"status": "Database is ready"}

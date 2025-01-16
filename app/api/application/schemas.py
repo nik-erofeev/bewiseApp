@@ -8,8 +8,15 @@ class BaseModelConfig(BaseModel):
 
 
 class ApplicationSchema(BaseModelConfig):
-    user_name: str = Field(max_length=20, description="имя пользователя")
-    description: str = Field(description="описание заявки")
+    user_name: str = Field(
+        max_length=20,
+        description="имя пользователя",
+        examples=["user_name"],
+    )
+    description: str = Field(
+        description="описание заявки",
+        examples=["Description for the application"],
+    )
 
     @field_validator("user_name")
     def validate_user_name(cls, value):
@@ -17,14 +24,7 @@ class ApplicationSchema(BaseModelConfig):
 
 
 class ApplicationCreateSchema(ApplicationSchema):
-    class Config:
-        populate_by_name = True
-        json_schema_extra = {
-            "example": {
-                "user_name": "user",
-                "description": "Description for the application",
-            },
-        }
+    pass
 
 
 class ApplicationRespSchema(ApplicationSchema):
@@ -43,17 +43,13 @@ class ApplicationUpdateSchema(BaseModelConfig):
         default=None,
         max_length=20,
         description="имя пользователя",
+        examples=["new_user_name"],
     )
-    description: str | None = Field(default=None, max_length=100, description="описание заявки")
-
-    class Config:
-        populate_by_name = True
-        json_schema_extra = {
-            "example": {
-                "user_name": "new_user_name",
-                "description": "Description for the application",
-            },
-        }
+    description: str | None = Field(
+        default=None,
+        description="описание заявки",
+        examples=["Description for the application"],
+    )
 
 
 class ApplicationUpdateResponseSchema(BaseModel):

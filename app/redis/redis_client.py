@@ -51,7 +51,7 @@ class RedisClient:
 
     async def close(self) -> None:
         logger.info("REDIS: Closing...")
-        await self.connection.close()
+        await self.connection.aclose()  # type: ignore
 
     async def health_check(self) -> bool:
         conn = self.connection
@@ -62,6 +62,8 @@ class RedisClient:
 
     async def setup(self) -> None:
         self.connect()
+        if self._redis_pool is None:
+            self.connect()
         if await self.health_check():
             logger.debug(f"Redis client connected to {self._config.host}")
         else:

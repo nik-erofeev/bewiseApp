@@ -94,4 +94,3 @@ exclude = "venv|migrations"
 asyncio_mode = "auto"
 pythonpath = [".", "app"]
 python_files = ["*_test.py", "*_tests.py", "test_*.py"]
-asyncio_default_fixture_loop_scope = "function"

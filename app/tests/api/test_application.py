@@ -2,7 +2,7 @@ import pytest
 
 
 async def test_get_applications(client, setup_database):
-    response = await client.get("/v1/applications/")
+    response = client.get("/v1/applications/")
     assert response.status_code == 200
     assert len(response.json()) == 3  # при создании 3 мока
     assert response.json()[0]["user_name"] == "user1_insert_mock"
@@ -25,7 +25,7 @@ async def test_get_application(
     expected_status_code: int,
     expected_response: dict,
 ):
-    response = await client.get(f"/v1/applications/{applications_id}")
+    response = client.get(f"/v1/applications/{applications_id}")
     assert response.status_code == expected_status_code
 
     if expected_status_code == 200:
@@ -52,7 +52,7 @@ async def test_add_application(
     expected_len_response: int,
 ):
     payload = {"user_name": user_name, "description": "This is a test application."}
-    response = await client.post("/v1/applications/", json=payload)
+    response = client.post("/v1/applications/", json=payload)
     assert response.status_code == status_code
     assert len(response.json()) == expected_len_response
     if status_code == 400:
@@ -74,7 +74,7 @@ async def test_delete_application(
     application_id: int,
     status_code: int,
 ):
-    response = await client.delete(f"/v1/applications/{application_id}")
+    response = client.delete(f"/v1/applications/{application_id}")
     assert response.status_code == status_code
 
 
@@ -82,10 +82,10 @@ async def test_delete_application(
     "application_id, update_data, expected_status_code, expected_result",
     [
         (
-            1,
+            2,
             {"user_name": "updated_user_admin", "description": "NEW Updated description"},
             200,
-            {"message": "Заявка 1 успешно обновлена"},
+            {"message": "Заявка 2 успешно обновлена"},
         ),  # успешное обновление
         (
             999,
@@ -109,7 +109,7 @@ async def test_update_application(
     expected_status_code: int,
     expected_result: str | None,
 ):
-    response = await client.patch(f"/v1/applications/{application_id}", json=update_data)
+    response = client.patch(f"/v1/applications/{application_id}", json=update_data)
     assert response.status_code == expected_status_code
 
     assert response.json() == expected_result

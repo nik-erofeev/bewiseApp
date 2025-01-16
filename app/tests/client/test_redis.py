@@ -1,6 +1,6 @@
 import pytest
 
-from app.redis.redis_client import RedisKeys
+from app.redis.redis_client import ExpireTime, RedisKeys
 
 
 @pytest.mark.asyncio
@@ -8,7 +8,7 @@ from app.redis.redis_client import RedisKeys
     "application_id, expected_data",
     [
         (1, {"name": "Test Application"}),
-        (2, None),
+        (97, None),
     ],
 )
 async def test_cached_application(redis_client, application_id, expected_data):
@@ -31,7 +31,7 @@ async def test_set_application_cache(redis_client):
         RedisKeys.APPLICATION,
         str(application_id),
         application_data,
-        expire=86400,  # ExpireTime.DAY.value
+        expire=ExpireTime.DAY.value,
     )
 
 

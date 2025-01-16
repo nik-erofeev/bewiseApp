@@ -126,7 +126,7 @@ class ApplicationDAO(BaseDAO):
             # todo: "параллельно"
             result, *_ = await asyncio.gather(
                 cls.update(session, update_filter, update_data),
-                redis.update_application_cache(application_id, update_data.model_dump()),
+                redis.update_application_cache(application_id, message["update_application"]),
                 kafka.send_message(message=message),
             )
 
