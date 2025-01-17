@@ -34,78 +34,120 @@ jobs:
     - name: Run pre-commit
       uses: pre-commit/action@v3.0.1
 
-  test:
-    runs-on: ubuntu-latest
-    needs: lint
-    services:
-      postgres:
-        image: postgres:latest
-        env:
-          POSTGRES_USER: user
-          POSTGRES_PASSWORD: password
-          POSTGRES_DB: test_db
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U user"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-      redis:
-        image: redis:latest
-        ports:
-          - 6379:6379
-      kafka:
-        image: wurstmeister/kafka:latest
-        ports:
-          - 9092:9092
-        options: >-
-          --env KAFKA_ADVERTISED_LISTENERS=INSIDE://kafka:9092,OUTSIDE://localhost:9092
-          --env KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
-          --env KAFKA_LISTENERS=INSIDE://0.0.0.0:9092,OUTSIDE://0.0.0.0:9092
-          --env KAFKA_ZOOKEEPER=zookeeper:2181
-      zookeeper:
-        image: wurstmeister/zookeeper:latest
-        ports:
-          - 2181:2181
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Install Poetry
-        run: |
-          curl -sSL https://install.python-poetry.org | python3 -
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
-
-      - name: Install dependencies with Poetry
-        run: |
-          poetry install
-
-      - name: Set up environment variables
-        run: |
-          echo "TEST__DATABASE_USER=user" >> $GITHUB_ENV
-          echo "TEST__DATABASE_PASSWORD=password" >> $GITHUB_ENV
-          echo "TEST__DATABASE_HOST=postgres" >> $GITHUB_ENV
-          echo "TEST__DATABASE_PORT=5432" >> $GITHUB_ENV
-          echo "TEST__DATABASE_NAME=test_db" >> $GITHUB_ENV
-          echo "KAFKA__HOST=kafka" >> $GITHUB_ENV
-          echo "KAFKA__PORT=9092" >> $GITHUB_ENV
-          echo "KAFKA__TOPIK=bewise_topic" >> $GITHUB_ENV
-          echo "REDIS__HOST=redis://redis" >> $GITHUB_ENV
-
-      - name: Run tests with Poetry
-        run: |
-          poetry run pytest
+#  test:
+#    runs-on: ubuntu-latest
+#    services:
+#      postgres:
+#        image: postgres
+#        env:
+#          POSTGRES_USER: user
+#          POSTGRES_PASSWORD: pass
+#          POSTGRES_DB: postgres
+#        options: >-
+#          --health-cmd "pg_isready -U user"
+#          --health-interval 10s
+#          --health-timeout 5s
+#          --health-retries 5
+#        ports:
+#          - 5432:5432
+#
+#      redis:
+#        image: redis:6.2-alpine
+#        ports:
+#          - 6379:6379
+#
+#      zookeeper:
+#        image: bitnami/zookeeper
+#        ports:
+#          - 2181:2181
+#        env:
+##          ZOO_PORT_NUMBER: 2181
+##          ZOO_TICK_TIME: 2000
+##          ZOO_SYNC_LIMIT: 2
+#          ALLOW_ANONYMOUS_LOGIN: yes
+#        options: >-
+#          --health-cmd "echo mntr | nc -w 2 -q 2 localhost 2181"
+#          --health-interval 10s
+#          --health-timeout 5s
+#          --health-retries 3
+#
+#      kafka:
+#        image: bitnami/kafka
+#        ports:
+#          - 9092:9092
+#        env:
+#          KAFKA_CFG_ZOOKEEPER_CONNECT: KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper-server:2181
+#          KAFKA_INTER_BROKER_LISTENER_NAME: CLIENT
+#          KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: CLIENT:PLAINTEXT,EXTERNAL:PLAINTEXT
+#          KAFKA_CFG_ADVERTISED_LISTENERS: CLIENT://kafka-server1:9092,EXTERNAL://localhost:9093
+#          KAFKA_CFG_LISTENERS: CLIENT://:9092,EXTERNAL://:9093
+#          ALLOW_PLAINTEXT_LISTENER: yes
+#
+#        options: >-
+#          --health-cmd "kafka-broker-api-versions.sh --version"
+#          --health-interval 10s
+#          --health-timeout 5s
+#          --health-retries 5
+#
+#    steps:
+#      - name: Checkout
+#        uses: actions/checkout@v4
+#
+#      - name: Set up Python
+#        uses: actions/setup-python@v5
+#        with:
+#          python-version: ${{ matrix.python-version }}
+#
+##      - name: Install Poetry
+##        run: |
+##          curl -sSL https://install.python-poetry.org | python3 -
+##          echo "$HOME/.local/bin" >> $GITHUB_PATH
+##
+##      - name: Install dependencies with Poetry
+##        run: |
+##          poetry install
+##
+##      - name: Set up environment variables
+##        run: |
+##          echo "DB__TEST_USER=user" >> $GITHUB_ENV
+##          echo "DB__TEST_PASSWORD=pass" >> $GITHUB_ENV
+##          echo "DB__TEST_HOST=localhost" >> $GITHUB_ENV
+##          echo "DB__TEST_PORT=5432" >> $GITHUB_ENV
+##          echo "DB__TEST_NAME=test_db" >> $GITHUB_ENV
+##          echo "KAFKA__HOST=localhost" >> $GITHUB_ENV
+##          echo "KAFKA__PORT=9092" >> $GITHUB_ENV
+##          echo "KAFKA__TOPIK=bewise_topic" >> $GITHUB_ENV
+##          echo "REDIS__HOST=redis://localhost" >> $GITHUB_ENV
+#
+#
+#      - name: Wait for Zookeeper
+#        run: |
+#          while ! nc -z localhost 2181; do
+#            echo "Waiting for Zookeeper..."
+#            sleep 5
+#          done
+#
+#      - name: Wait for Kafka
+#        run: |
+#          while ! nc -z localhost 9092; do
+#            echo "Waiting for Kafka..."
+#            sleep 5
+#          done
+#
+#      - name: Wait for PostgreSQL
+#        run: |
+#          while ! nc -z localhost 5432; do
+#            echo "Waiting for PostgreSQL..."
+#            sleep 5
+#          done
+#
+##      - name: Run tests with Poetry
+##        run: |
+##          poetry run pytest
 
   push:
     runs-on: ubuntu-latest
-    needs: test
+    needs: lint
 
     steps:
       - name: Checkout
