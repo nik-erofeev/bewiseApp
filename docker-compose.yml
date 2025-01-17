@@ -51,11 +51,11 @@ services:
   zookeeper:
     platform: linux/x86_64
     container_name: ${DOCKER_NAME}-zookeeper
-    image: confluentinc/cp-zookeeper:latest
+#    image: docker.io/bitnami/zookeeper:3.8
+    image: bitnami/zookeeper:latest
     restart: unless-stopped
     environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
+      ALLOW_ANONYMOUS_LOGIN: yes
     ports:
       - '2181:2181'
     networks:
@@ -64,21 +64,22 @@ services:
   kafka:
     platform: linux/x86_64
     container_name: ${DOCKER_NAME}-kafka
-    image: confluentinc/cp-kafka:latest
+#    image: docker.io/bitnami/kafka:3.3
+    image: bitnami/kafka:latest
     restart: unless-stopped
     depends_on:
       - zookeeper
     ports:
       - '9092:9092'
-      - '29092:29092'
+      - '29092:29092'  # Порт для внешнего доступа
     environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
-      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_HOST://0.0.0.0:29092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      - KAFKA_BROKER_ID=1
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CLIENT:PLAINTEXT,EXTERNAL:PLAINTEXT
+      - KAFKA_CFG_LISTENERS=CLIENT://:9092,EXTERNAL://:29092
+      - KAFKA_CFG_ADVERTISED_LISTENERS=CLIENT://kafka:9092,EXTERNAL://localhost:29092
+      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=CLIENT
     networks:
       - custom
 
@@ -90,9 +91,9 @@ services:
     ports:
       - "8090:8080"
     environment:
-      - KAFKA_CLUSTERS_0_NAME=local
-      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:9092
-      - KAFKA_CLUSTERS_0_ZOOKEEPER=zookeeper:2181
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092  # адрес  Kafka
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181 #  адрес Zookeeper
     depends_on:
       - kafka
     networks:
