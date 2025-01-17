@@ -34,9 +34,78 @@ jobs:
     - name: Run pre-commit
       uses: pre-commit/action@v3.0.1
 
-  push:
+  test:
     runs-on: ubuntu-latest
     needs: lint
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U user"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:latest
+        ports:
+          - 6379:6379
+      kafka:
+        image: wurstmeister/kafka:latest
+        ports:
+          - 9092:9092
+        options: >-
+          --env KAFKA_ADVERTISED_LISTENERS=INSIDE://kafka:9092,OUTSIDE://localhost:9092
+          --env KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
+          --env KAFKA_LISTENERS=INSIDE://0.0.0.0:9092,OUTSIDE://0.0.0.0:9092
+          --env KAFKA_ZOOKEEPER=zookeeper:2181
+      zookeeper:
+        image: wurstmeister/zookeeper:latest
+        ports:
+          - 2181:2181
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Install dependencies with Poetry
+        run: |
+          poetry install
+
+      - name: Set up environment variables
+        run: |
+          echo "TEST__DATABASE_USER=user" >> $GITHUB_ENV
+          echo "TEST__DATABASE_PASSWORD=password" >> $GITHUB_ENV
+          echo "TEST__DATABASE_HOST=postgres" >> $GITHUB_ENV
+          echo "TEST__DATABASE_PORT=5432" >> $GITHUB_ENV
+          echo "TEST__DATABASE_NAME=test_db" >> $GITHUB_ENV
+          echo "KAFKA__HOST=kafka" >> $GITHUB_ENV
+          echo "KAFKA__PORT=9092" >> $GITHUB_ENV
+          echo "KAFKA__TOPIK=bewise_topic" >> $GITHUB_ENV
+          echo "REDIS__HOST=redis://redis" >> $GITHUB_ENV
+
+      - name: Run tests with Poetry
+        run: |
+          poetry run pytest
+
+  push:
+    runs-on: ubuntu-latest
+    needs: test
 
     steps:
       - name: Checkout

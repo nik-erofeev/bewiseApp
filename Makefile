@@ -14,5 +14,14 @@ up_local:
 mypy:
 	@echo mypy .
 	mypy . --exclude 'venv|migrations'
+
 pytest:
-	pytest -s -vv app/tests/ --junitxml tests-unit-results.xml --cov=app --cov-report='xml:coverage-tests-unit.xml'
+	pytest -v -W ignore
+	#pytest -s -vv app/tests/ --junitxml tests-unit-results.xml --cov=app --cov-report='xml:coverage-tests-unit.xml'
+
+pre-commit:
+	pre-commit run --all-files
+
+docker_test:
+	docker compose -f docker-compose-test.yml run --rm test
+	#docker compose -f docker-compose-test.yml up  # если не удалят контейнер

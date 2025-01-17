@@ -1,4 +1,4 @@
-FROM python:3.12-slim
+FROM python:3.12-slim as production
 
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -39,6 +39,11 @@ COPY docker /bewise/docker
 RUN chmod +x /bewise/docker/*
 
 
-CMD ["/bewise/docker/app.sh"]
+# test
+COPY app/tests tests
+COPY app/conftest.py .
+
+# указали в docker-compose
+#CMD ["/bewise/docker/app.sh"]
 
 EXPOSE 8000

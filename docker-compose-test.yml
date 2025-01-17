@@ -1,0 +1,16 @@
+services:
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/app/
+    networks:
+      - custom
+    command: sh -c "pytest -v -W ignore tests"
+    env_file:
+      - .env
+
+networks:
+  custom:
+    driver: bridge

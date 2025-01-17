@@ -30,6 +30,11 @@ http://localhost:8090
 
 <br>
 
+#### запуск в отдельном в контейнере, при этом должны должны быть подняты (kafka/redis/postgres)
+```shell
+make docker_test
+```
+
 
 ## Локально
 #### Загрузить ЕНВы из файла .env(при локальном  смотреть коммент в [.env_example](./.env_example))
@@ -92,4 +97,19 @@ http://localhost:8000/
 http://localhost:8090
 ```
 
+<br>
 
+#### Тесты
+
+#### запуск в отдельном в контейнере, при этом должны должны быть подняты (kafka/redis/postgres)
+```shell
+make docker_test
+```
+
+#### при локально запуске тестов переопределить **Env** на локальные(host/port)
+
+```shell
+make pytest
+```
+
+<br>
