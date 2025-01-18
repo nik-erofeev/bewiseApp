@@ -100,6 +100,7 @@ class BaseDAO(Generic[T]):
         session.add(new_instance)
         try:
             await session.flush()
+            await session.refresh(new_instance)
             logger.info(f"Запись {cls.model.__name__} успешно добавлена.")
             # todo при успешном коммитится так как TransactionSessionDep
         except SQLAlchemyError as e:

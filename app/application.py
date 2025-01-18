@@ -20,10 +20,10 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     logger.info("Starting server...")
 
-    logger.info("Starting Kafka producer...")
+    # logger.info("Starting Kafka producer...")
     # await kafka_producer.start()  # если нужен постоянный коннект
 
-    logger.info("Starting Redis client...")
+    # logger.info("Starting Redis client...")
     # await redis_cli.setup()  # если нужен постоянный коннект
 
     yield  # Здесь приложение будет работать
