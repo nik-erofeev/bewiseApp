@@ -6,7 +6,7 @@ from app.kafka.producer import KafkaProducer
 async def test_kafka_producer():
     producer = KafkaProducer(
         bootstrap_servers="localhost:29092",
-        default_topic="my_example_topik",
+        topik="my_example_topik",
     )
     await producer.start()
 

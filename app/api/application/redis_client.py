@@ -1,5 +1,6 @@
 import logging
 
+from app.core.settings import APP_CONFIG
 from app.redis.redis_client import ExpireTime, RedisClient, RedisKeys
 
 logger = logging.getLogger(__name__)
@@ -53,3 +54,6 @@ class RedisClientApplication(RedisClient):
 
         except Exception as e:
             logger.error(f"Ошибка при удалении заявки с ID {application_id}: {e}")
+
+
+redis_cli = RedisClientApplication(APP_CONFIG.redis)

@@ -62,7 +62,6 @@ class DbConfig(BaseModel):
 class KafkaConfig(BaseModel):
     host: str = ""
     port: int = 9092
-    batch_size: int = 5
     topik: str = "default"
 
     @property
